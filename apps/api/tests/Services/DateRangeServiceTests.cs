@@ -1,4 +1,5 @@
-﻿using CustomerSpending.Api.Services;
+﻿using CustomerSpending.Api.Models;
+using CustomerSpending.Api.Services;
 using Xunit;
 
 namespace CustomerSpending.Api.Tests.Services;
@@ -6,6 +7,29 @@ namespace CustomerSpending.Api.Tests.Services;
 public class DateRangeServiceTests
 {
     private readonly DateRangeService _sut = new();
+
+    [Fact]
+    public void GetReferenceUtcNow_ReturnsUtcNow_WhenNoTransactions()
+    {
+        var now = new DateTime(2026, 01, 31, 0, 0, 0, DateTimeKind.Utc);
+        var refNow = _sut.GetReferenceUtcNow(Array.Empty<Transaction>(), now);
+        Assert.Equal(now, refNow);
+    }
+
+    [Fact]
+    public void GetReferenceUtcNow_ReturnsLatestTransactionDate_WhenPresent()
+    {
+        var now = new DateTime(2026, 01, 31, 0, 0, 0, DateTimeKind.Utc);
+
+        var tx = new[]
+        {
+        new Transaction("1", new DateTimeOffset(2024, 06, 01, 10, 0, 0, TimeSpan.Zero), "A", "Groceries", 10m, "x", "Card", "shopping-cart", "#fff"),
+        new Transaction("2", new DateTimeOffset(2024, 06, 15, 12, 0, 0, TimeSpan.Zero), "B", "Dining", 20m, "y", "Card", "utensils", "#000"),
+    };
+
+        var refNow = _sut.GetReferenceUtcNow(tx, now);
+        Assert.Equal(new DateTime(2024, 06, 15, 12, 0, 0, DateTimeKind.Utc), refNow);
+    }
 
     [Fact]
     public void Resolve_DefaultPeriod_Is30d()

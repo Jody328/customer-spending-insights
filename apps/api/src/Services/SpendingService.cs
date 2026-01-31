@@ -27,13 +27,11 @@ public sealed class SpendingService : ISpendingService
 
     public async Task<SpendingSummaryResponse> GetSummaryAsync(string customerId, string? period, CancellationToken ct = default)
     {
-        var now = _clock.UtcNow;
+        var all = await _transactions.GetAllAsync(customerId, ct);
+        var referenceNow = _dateRanges.GetReferenceUtcNow(all, _clock.UtcNow);
 
         // Default period is 30d if not supplied (as per spec)
-        var currentRange = _dateRanges.Resolve(period, startDate: null, endDate: null, utcNow: now);
-
-        var all = await _transactions.GetAllAsync(customerId, ct);
-
+        var currentRange = _dateRanges.Resolve(period, startDate: null, endDate: null, utcNow: referenceNow);
         var currentTxns = FilterByRange(all, currentRange);
         var currentTotal = currentTxns.Sum(t => t.Amount);
         var currentCount = currentTxns.Count;
@@ -80,14 +78,15 @@ public sealed class SpendingService : ISpendingService
 
     public async Task<SpendingByCategoryResponse> GetCategoriesAsync(string customerId, SpendingCategoriesQuery query, CancellationToken ct = default)
     {
-        var now = _clock.UtcNow;
+        var all = await _transactions.GetAllAsync(customerId, ct);
+        var referenceNow = _dateRanges.GetReferenceUtcNow(all, _clock.UtcNow);
 
         // Period default 30d; custom start/end takes precedence (handled inside service)
         var range = _dateRanges.Resolve(
             period: query.Period,
             startDate: query.StartDate,
             endDate: query.EndDate,
-            utcNow: now
+            utcNow: referenceNow
         );
 
         var filters = await _customers.GetFiltersAsync(customerId, ct);
@@ -99,7 +98,6 @@ public sealed class SpendingService : ISpendingService
             c => c,
             StringComparer.OrdinalIgnoreCase);
 
-        var all = await _transactions.GetAllAsync(customerId, ct);
         var txns = FilterByRange(all, range);
 
         var total = txns.Sum(t => t.Amount);

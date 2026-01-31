@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using CustomerSpending.Api.Models;
 using CustomerSpending.Api.Models.Queries;
 
 namespace CustomerSpending.Api.Services;
@@ -9,6 +10,28 @@ public sealed class DateRangeService : IDateRangeService
     {
         "7d", "30d", "90d", "1y"
     };
+
+    /// <summary>
+    /// Returns the best "now" reference for period calculations.
+    /// For seeded/historical demo data, this anchors "now" to the latest transaction date.
+    /// Falls back to utcNow if there are no transactions.
+    /// </summary>
+    public DateTime GetReferenceUtcNow(IEnumerable<Transaction> transactions, DateTime utcNow)
+    {
+        utcNow = utcNow.Kind == DateTimeKind.Utc ? utcNow : utcNow.ToUniversalTime();
+
+        if (transactions is null)
+            return utcNow;
+
+        // Transaction.Date is DateTimeOffset, so UtcDateTime is the safest and most explicit anchor.
+        var maxUtc = transactions
+            .Select(t => t.Date.UtcDateTime)
+            .DefaultIfEmpty(utcNow)
+            .Max();
+
+        // Ensure the returned DateTime is UTC kind.
+        return DateTime.SpecifyKind(maxUtc, DateTimeKind.Utc);
+    }
 
     public DateRange Resolve(string? period, string? startDate, string? endDate, DateTime utcNow)
     {

@@ -20,7 +20,9 @@ public sealed class TransactionsService : ITransactionsService
 
     public async Task<TransactionsResponse> GetTransactionsAsync(string customerId, TransactionsQuery query, CancellationToken ct = default)
     {
-        var now = _clock.UtcNow;
+        var all = await _transactions.GetAllAsync(customerId, ct);
+        var referenceNow = _dateRanges.GetReferenceUtcNow(all, _clock.UtcNow);
+
         var limit = query.Limit <= 0 ? 20 : query.Limit;
         if (limit > 100) throw new ArgumentException("limit must be between 1 and 100");
 
@@ -39,12 +41,7 @@ public sealed class TransactionsService : ITransactionsService
 
         if (hasCustom || hasPeriod)
         {
-            var range = _dateRanges.Resolve(
-                period: hasCustom ? null : query.Period, // custom beats period
-                startDate: query.StartDate,
-                endDate: query.EndDate,
-                utcNow: now
-            );
+            var range = _dateRanges.Resolve(query.Period, query.StartDate, query.EndDate, referenceNow);
 
             startUtc = range.StartUtcInclusive;
             endUtc = range.EndUtcInclusive;
@@ -52,12 +49,10 @@ public sealed class TransactionsService : ITransactionsService
         else
         {
             // Default to 30d if neither custom nor period is provided
-            var range = _dateRanges.Resolve(period: "30d", startDate: null, endDate: null, utcNow: now);
+            var range = _dateRanges.Resolve(period: "30d", startDate: null, endDate: null, utcNow: referenceNow);
             startUtc = range.StartUtcInclusive;
             endUtc = range.EndUtcInclusive;
         }
-
-        var all = await _transactions.GetAllAsync(customerId, ct);
 
         IEnumerable<Models.Transaction> filtered = all;
 
