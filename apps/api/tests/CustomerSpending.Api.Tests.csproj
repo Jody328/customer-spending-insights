@@ -18,4 +18,8 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\src\CustomerSpending.Api.csproj" />
+  </ItemGroup>
+
 </Project>

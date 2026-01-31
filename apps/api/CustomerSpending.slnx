@@ -5,4 +5,7 @@
   <Folder Name="/tests/">
     <Project Path="tests/CustomerSpending.Api.Tests.csproj" />
   </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/SeedGenerator/SeedGenerator.csproj" />
+  </Folder>
 </Solution>
