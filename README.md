@@ -7,6 +7,10 @@ It simulates a modern enterprise banking analytics stack with a strongly‑typed
 
 ---
 
+## Dashboard
+
+![Dashboard](screenshots/dashboard.png)
+
 ## High‑Level Architecture
 
 The platform consists of three primary layers:
