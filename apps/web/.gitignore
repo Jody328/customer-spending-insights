@@ -1,0 +1,78 @@
+# OS / Editor
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*.log
+*.tmp
+*.bak
+*.old
+.vscode/
+.idea/
+*.user
+*.sln.docstates
+
+# Node / Frontend (Vite, React)
+node_modules/
+dist/
+build/
+.cache/
+.vite/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# .NET / C# Backend
+bin/
+obj/
+*.dll
+*.exe
+*.pdb
+*.cache
+*.nupkg
+*.snupkg
+*.deps.json
+*.runtimeconfig.json
+*.appsettings.json
+appsettings.*.json
+
+# Visual Studio
+.vs/
+*.csproj.user
+*.suo
+*.user
+*.userprefs
+
+# Build artifacts
+publish/
+out/
+
+# Test results
+TestResults/
+coverage/
+*.coverage
+*.coveragexml
+
+# Logs & runtime files
+logs/
+*.log
+
+# Generated seed data
+apps/api/tools/src/seed/*.json
+apps/api/src/seed/*.json
+
+# Local secrets
+secrets.json
+*.key
+*.pem
+
+# Package lock noise
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
