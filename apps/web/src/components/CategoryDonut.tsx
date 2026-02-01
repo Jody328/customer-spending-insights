@@ -24,6 +24,12 @@ export function CategoryDonut({
     transactionCount: c.transactionCount,
   }));
 
+  const tooltipFormatter = (value: unknown) => {
+    const n = typeof value === "number" ? value : Number(value);
+    if (!Number.isFinite(n)) return ["—", "Amount"] as const;
+    return [formatMoney(n, currency), "Amount"] as const;
+  };
+
   return (
     <div className="rounded-2xl border bg-white p-5 shadow-sm">
       <div className="flex items-start justify-between gap-4">
@@ -56,15 +62,7 @@ export function CategoryDonut({
                   <Cell key={entry.name} fill={entry.color} />
                 ))}
               </Pie>
-              <Tooltip
-                formatter={(value: number, _name, props: any) => {
-                  const p = props?.payload?.percentage ?? 0;
-                  return [
-                    `${formatMoney(value, currency)} (${p.toFixed(1)}%)`,
-                    "Amount",
-                  ];
-                }}
-              />
+              <Tooltip formatter={tooltipFormatter} />
             </PieChart>
           </ResponsiveContainer>
         </div>

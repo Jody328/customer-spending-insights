@@ -68,20 +68,24 @@ public sealed class DateRangeService : IDateRangeService
 
     private static DateRange ResolveCustomRange(string? startDate, string? endDate, DateTime utcNow)
     {
-        // End date default: today
-        var end = string.IsNullOrWhiteSpace(endDate)
-            ? utcNow.Date
-            : ParseIsoDateOrThrow(endDate);
+        var hasStart = !string.IsNullOrWhiteSpace(startDate);
+        var hasEnd = !string.IsNullOrWhiteSpace(endDate);
 
-        // Start date default: 30 days before end (inclusive)
-        var start = string.IsNullOrWhiteSpace(startDate)
-            ? end.AddDays(-29)
-            : ParseIsoDateOrThrow(startDate);
+        DateTime? start = hasStart ? ParseIsoDateOrThrow(startDate!) : null;
+        DateTime? end = hasEnd ? ParseIsoDateOrThrow(endDate!) : null;
+
+        // If only one side is supplied, use a single-day range (predictable + UX friendly)
+        if (start is not null && end is null) end = start.Value;
+        if (end is not null && start is null) start = end.Value;
+
+        // Fallback (shouldn't be hit when caller sets hasCustom, but safe anyway)
+        start ??= utcNow.Date.AddDays(-29);
+        end ??= utcNow.Date;
 
         if (start > end)
             throw new ArgumentException("startDate must be <= endDate");
 
-        return CreateRange(start, end);
+        return CreateRange(start.Value, end.Value);
     }
 
     private static DateTime ParseIsoDateOrThrow(string value)

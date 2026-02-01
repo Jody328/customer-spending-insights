@@ -36,6 +36,14 @@ export function MonthlyTrends({
     transactionCount: t.transactionCount,
   }));
 
+  const tooltipFormatter = (value: unknown, name: unknown) => {
+    const n = typeof value === "number" ? value : Number(value);
+    const label = typeof name === "string" ? name : "Total spent";
+
+    if (!Number.isFinite(n)) return ["—", label] as const;
+    return [formatMoney(n, currency), label] as const;
+  };
+
   return (
     <div className="rounded-2xl border bg-white p-5 shadow-sm">
       <div className="flex items-start justify-between gap-4">
@@ -58,14 +66,7 @@ export function MonthlyTrends({
               tickFormatter={(v) => formatMoney(Number(v), currency)}
               width={90}
             />
-            <Tooltip
-              formatter={(value: number, name) => {
-                if (name === "totalSpent")
-                  return [formatMoney(value, currency), "Total spent"];
-                if (name === "transactionCount") return [value, "Transactions"];
-                return [value, name];
-              }}
-            />
+            <Tooltip formatter={tooltipFormatter} />
             <Line
               type="monotone"
               dataKey="totalSpent"
