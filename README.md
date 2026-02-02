@@ -234,7 +234,7 @@ Your NGINX config exposes Swagger through the Web container:
 
 **Fix**
 - Use the exact trailing-slash route:
-  - ✅ `http://localhost:5173/swagger/`
+  - `http://localhost:5173/swagger/`
 - If the Swagger UI loads but “Try it out” calls fail, the API may need forwarded headers configuration when behind a reverse proxy.
 
 ---
