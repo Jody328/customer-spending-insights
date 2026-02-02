@@ -1,146 +1,35 @@
-import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { DEFAULT_CUSTOMER_ID } from "./api/config";
-import {
-  fetchCustomerProfile,
-  fetchSpendingSummary,
-  fetchSpendingCategories,
-  fetchSpendingTrends,
-  fetchTransactions,
-} from "./api/endpoints";
 import { CategoryDonut } from "./components/CategoryDonut";
 import { MonthlyTrends } from "./components/MonthlyTrends";
 import { TransactionsTable } from "./components/TransactionsTable";
 import { KpiRowSkeleton } from "./components/skeletons/KpiRowSkeleton";
 import { CardSkeleton } from "./components/skeletons/CardSkeleton";
 import { TableSkeleton } from "./components/skeletons/TableSkeleton";
-
-const PERIODS = [
-  { label: "Last 7 days", value: "7d" },
-  { label: "Last 30 days", value: "30d" },
-  { label: "Last 90 days", value: "90d" },
-  { label: "Last year", value: "1y" },
-];
-
-function formatMoney(amount: number, currency: string) {
-  return new Intl.NumberFormat("en-ZA", {
-    style: "currency",
-    currency,
-    maximumFractionDigits: 2,
-  }).format(amount);
-}
-
-function DeltaBadge({ value }: { value: number }) {
-  const isUp = value >= 0;
-  const cls = isUp
-    ? "bg-emerald-100 text-emerald-800"
-    : "bg-rose-100 text-rose-800";
-  const sign = isUp ? "+" : "";
-  return (
-    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${cls}`}>
-      {sign}
-      {value.toFixed(1)}%
-    </span>
-  );
-}
+import { DeltaBadge } from "./components/DeltaBadge";
+import { formatMoney } from "./utilities/format";
+import { useDashboardController } from "./hooks/useDashboardController";
+import type { PeriodValue } from "./utilities/constants";
 
 export default function App() {
   const customerId = DEFAULT_CUSTOMER_ID;
 
-  const [period, setPeriod] = useState("30d");
-
-  const [txCategory, setTxCategory] = useState("");
-  const [txStartDate, setTxStartDate] = useState("");
-  const [txEndDate, setTxEndDate] = useState("");
-  const [txSortBy, setTxSortBy] = useState<
-    "date_desc" | "date_asc" | "amount_desc" | "amount_asc"
-  >("date_desc");
-  const [txLimit, setTxLimit] = useState(20);
-  const [txOffset, setTxOffset] = useState(0);
-
-  const profileQuery = useQuery({
-    queryKey: ["customerProfile", customerId],
-    queryFn: () => fetchCustomerProfile(customerId),
-  });
-
-  const summaryQuery = useQuery({
-    queryKey: ["spendingSummary", customerId, period],
-    queryFn: () => fetchSpendingSummary(customerId, period),
-    enabled: true,
-  });
-
-  const categoriesQuery = useQuery({
-    queryKey: ["spendingCategories", customerId, period],
-    queryFn: () => fetchSpendingCategories(customerId, period),
-  });
-
-  const trendsQuery = useQuery({
-    queryKey: ["spendingTrends", customerId],
-    queryFn: () => fetchSpendingTrends(customerId, 12),
-  });
-
-  const txQuery = useQuery({
-    queryKey: [
-      "transactions",
-      customerId,
-      period,
-      txCategory,
-      txStartDate,
-      txEndDate,
-      txSortBy,
-      txLimit,
-      txOffset,
-    ],
-    queryFn: () =>
-      fetchTransactions(customerId, {
-        period,
-        category: txCategory || undefined,
-        startDate: txStartDate || undefined,
-        endDate: txEndDate || undefined,
-        sortBy: txSortBy,
-        limit: txLimit,
-        offset: txOffset,
-      }),
-  });
-
-  const currency = profileQuery.data?.currency ?? "ZAR";
-
-  const error =
-    profileQuery.error ||
-    summaryQuery.error ||
-    categoriesQuery.error ||
-    trendsQuery.error;
-
-  const cards = useMemo(() => {
-    const s = summaryQuery.data;
-    if (!s) return [];
-    return [
-      {
-        title: "Total spent",
-        value: formatMoney(s.totalSpent, currency),
-        delta: s.comparedToPrevious.spentChange,
-      },
-      {
-        title: "Transactions",
-        value: s.transactionCount.toString(),
-        delta: s.comparedToPrevious.transactionChange,
-      },
-      {
-        title: "Avg. transaction",
-        value: formatMoney(s.averageTransaction, currency),
-      },
-      {
-        title: "Top category",
-        value: s.topCategory || "—",
-      },
-    ];
-  }, [summaryQuery.data, currency]);
-
-  // When changing period, reset transaction paging so we don't land on an empty page.
-  const handlePeriodChange = (nextPeriod: string) => {
-    setPeriod(nextPeriod);
-    setTxOffset(0);
-  };
+  const {
+    PERIODS,
+    period,
+    handlePeriodChange,
+    txState,
+    handleTxChange,
+    currency,
+    cards,
+    error,
+    queries: {
+      profileQuery,
+      summaryQuery,
+      categoriesQuery,
+      trendsQuery,
+      txQuery,
+    },
+  } = useDashboardController(customerId);
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -164,7 +53,9 @@ export default function App() {
             <select
               className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm w-full sm:w-auto"
               value={period}
-              onChange={(e) => handlePeriodChange(e.target.value)}
+              onChange={(e) =>
+                handlePeriodChange(e.target.value as PeriodValue)
+              }
             >
               {PERIODS.map((p) => (
                 <option key={p.value} value={p.value}>
@@ -296,25 +187,17 @@ export default function App() {
                   hasMore={txQuery.data.pagination.hasMore}
                   limit={txQuery.data.pagination.limit}
                   offset={txQuery.data.pagination.offset}
-                  category={txCategory}
-                  startDate={txStartDate}
-                  endDate={txEndDate}
-                  sortBy={txSortBy}
+                  category={txState.category}
+                  startDate={txState.startDate}
+                  endDate={txState.endDate}
+                  sortBy={txState.sortBy}
                   categories={
                     categoriesQuery.data?.categories.map((c) => c.name) ?? []
                   }
-                  onChange={(next) => {
-                    if (next.category !== undefined)
-                      setTxCategory(next.category);
-                    if (next.startDate !== undefined)
-                      setTxStartDate(next.startDate);
-                    if (next.endDate !== undefined) setTxEndDate(next.endDate);
-                    if (next.sortBy !== undefined) setTxSortBy(next.sortBy);
-                    if (next.limit !== undefined) setTxLimit(next.limit);
-                    if (next.offset !== undefined) setTxOffset(next.offset);
-                  }}
+                  onChange={handleTxChange}
                 />
               ) : null}
+
               {txQuery.isError && (
                 <div className="mb-4 rounded-xl border border-rose-200 bg-rose-50 p-4 text-rose-900">
                   <div className="font-semibold">
