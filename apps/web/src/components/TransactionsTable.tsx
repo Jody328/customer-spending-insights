@@ -64,6 +64,11 @@ export function TransactionsTable({
     return `Showing ${from}-${to} of ${total}`;
   }, [offset, limit, total]);
 
+  const categoryId = "tx-category";
+  const sortId = "tx-sort";
+  const startDateId = "tx-start-date";
+  const endDateId = "tx-end-date";
+
   return (
     <div className="rounded-2xl border bg-white p-5 shadow-sm">
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
@@ -76,8 +81,11 @@ export function TransactionsTable({
 
         <div className="grid grid-cols-2 gap-3 md:flex md:flex-wrap md:items-end">
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-slate-600">Category</label>
+            <label htmlFor="tx-category" className="text-xs text-slate-600">
+              Category
+            </label>
             <select
+              id={categoryId}
               className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
               value={category}
               onChange={(e) =>
@@ -94,8 +102,11 @@ export function TransactionsTable({
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-slate-600">Sort</label>
+            <label htmlFor="tx-sort" className="text-xs text-slate-600">
+              Sort
+            </label>
             <select
+              id={sortId}
               className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
               value={sortBy}
               onChange={(e) =>
@@ -110,9 +121,13 @@ export function TransactionsTable({
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-slate-600">Start date</label>
+            <label htmlFor="tx-start-date" className="text-xs text-slate-600">
+              Start date
+            </label>
             <input
+              id={startDateId}
               type="date"
+              placeholder="Select start date"
               className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
               max={endDate || undefined}
               value={startDate}
@@ -133,8 +148,11 @@ export function TransactionsTable({
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-slate-600">End date</label>
+            <label htmlFor="tx-end-date" className="text-xs text-slate-600">
+              End date
+            </label>
             <input
+              id={endDateId}
               type="date"
               className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
               min={startDate || undefined}
