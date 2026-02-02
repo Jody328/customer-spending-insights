@@ -74,13 +74,26 @@ public sealed class DateRangeService : IDateRangeService
         DateTime? start = hasStart ? ParseIsoDateOrThrow(startDate!) : null;
         DateTime? end = hasEnd ? ParseIsoDateOrThrow(endDate!) : null;
 
-        // If only one side is supplied, use a single-day range (predictable + UX friendly)
-        if (start is not null && end is null) end = start.Value;
-        if (end is not null && start is null) start = end.Value;
+        // Normalize utcNow (defensive; Resolve already does this)
+        utcNow = utcNow.Kind == DateTimeKind.Utc ? utcNow : utcNow.ToUniversalTime();
+        var today = utcNow.Date;
+
+        // If only one side is supplied:
+        // - Missing end => default to today
+        // - Missing start => default to 30d window ending at end
+        if (start is not null && end is null)
+        {
+            end = today;
+        }
+        else if (end is not null && start is null)
+        {
+            // Match default period behavior: 30d inclusive => end-29
+            start = end.Value.AddDays(-29);
+        }
 
         // Fallback (shouldn't be hit when caller sets hasCustom, but safe anyway)
-        start ??= utcNow.Date.AddDays(-29);
-        end ??= utcNow.Date;
+        start ??= today.AddDays(-29);
+        end ??= today;
 
         if (start > end)
             throw new ArgumentException("startDate must be <= endDate");
