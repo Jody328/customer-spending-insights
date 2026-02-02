@@ -73,6 +73,5 @@ secrets.json
 *.pem
 
 # Package lock noise
-package-lock.json
 pnpm-lock.yaml
 yarn.lock
