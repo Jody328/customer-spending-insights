@@ -92,6 +92,74 @@ npm install
 npm run dev
 ```
 
+## Running Tests
+
+### API Tests
+```bash
+cd apps/api
+dotnet test
+```
+
+### Frontend Tests
+```bash
+cd apps/web
+npm run test:run
+```
+
+The frontend uses Vitest + Testing Library to validate:
+
+- Rendering
+- Error handling
+- Filters
+- User interactions
+
+### Frontend Type Safety
+```bash
+cd apps/web
+npm run build
+```
+
+---
+
+## API Overview
+
+| Endpoint | Description |
+|--------|-------------|
+| `/customers/{id}/profile` | Customer metadata |
+| `/customers/{id}/spending/summary` | KPIs |
+| `/customers/{id}/spending/categories` | Category breakdown |
+| `/customers/{id}/spending/trends` | Monthly trends |
+| `/customers/{id}/transactions` | Transaction listing |
+
+All endpoints share a unified date‑range model.
+
+---
+
+## Date Range Engine
+
+The backend supports:
+- `7d`, `30d`, `90d`, `1y`
+- Custom `startDate` / `endDate`
+
+Rules:
+- Custom ranges override periods
+- Missing endDate defaults to today
+- Missing startDate defaults to 30‑day lookback
+- Validation guarantees `startDate ≤ endDate`
+
+This prevents UI‑driven data corruption.
+
+---
+
+## Security & Stability Considerations
+
+- Backend performs all filtering and aggregation
+- UI never computes financial totals
+- All queries validated server‑side
+- Strict typing on all API contracts
+
+---
+
 ## Troubleshooting
 ### 1) Ports already in use (8080 / 5173)
 **Symptoms**
@@ -230,59 +298,4 @@ Your NGINX config exposes Swagger through the Web container:
   docker compose logs api
   docker compose logs web
   ```
----
-
-## Testing
-
-### API Tests
-```bash
-cd apps/api
-dotnet test
-```
-
-### Frontend Type Safety
-```bash
-cd apps/web
-npm run build
-```
-
----
-
-## API Overview
-
-| Endpoint | Description |
-|--------|-------------|
-| `/customers/{id}/profile` | Customer metadata |
-| `/customers/{id}/spending/summary` | KPIs |
-| `/customers/{id}/spending/categories` | Category breakdown |
-| `/customers/{id}/spending/trends` | Monthly trends |
-| `/customers/{id}/transactions` | Transaction listing |
-
-All endpoints share a unified date‑range model.
-
----
-
-## Date Range Engine
-
-The backend supports:
-- `7d`, `30d`, `90d`, `1y`
-- Custom `startDate` / `endDate`
-
-Rules:
-- Custom ranges override periods
-- Missing endDate defaults to today
-- Missing startDate defaults to 30‑day lookback
-- Validation guarantees `startDate ≤ endDate`
-
-This prevents UI‑driven data corruption.
-
----
-
-## Security & Stability Considerations
-
-- Backend performs all filtering and aggregation
-- UI never computes financial totals
-- All queries validated server‑side
-- Strict typing on all API contracts
-
 ---
