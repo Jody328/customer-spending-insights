@@ -121,6 +121,37 @@ npm run build
 
 ---
 
+## Continuous Integration (CI)
+
+This project includes an automated CI pipeline powered by **GitHub Actions**.
+
+Every push and pull request triggers a full validation of both the backend and frontend to ensure system integrity.
+
+### What runs automatically
+
+The CI pipeline executes:
+
+- **Backend**
+  - `dotnet test` on `apps/api`
+- **Frontend**
+  - `npm ci`
+  - `npm run test:run` on `apps/web`
+
+This ensures:
+- API contracts remain valid
+- Business logic remains correct
+- UI behavior is not accidentally broken
+
+### Why this matters
+
+This project simulates real-world enterprise delivery standards:
+- All code changes are validated
+- No untested code reaches main
+- Frontend and backend remain in sync
+
+The CI pipeline is defined in:
+`.github/workflows/ci.yml`
+
 ## API Overview
 
 | Endpoint | Description |
